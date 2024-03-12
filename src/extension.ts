@@ -19,34 +19,9 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  // const moveRight = vscode.commands.registerCommand('indent-jump.moveRight', () => {
-  //   if (editor) {
-  //     new IndentJumpMover(editor).moveRight();
-  //   }
-  // });
-
-  const selectUp = vscode.commands.registerCommand('indent-jump.selectUp', () => {
-    const editor = vscode.window.activeTextEditor; // has to be on all functions to catch the current active text editor
-    if (editor) {
-      new IndentJumpMover(editor).selectUp();
-    }
-  });
-
-  const selectDown = vscode.commands.registerCommand('indent-jump.selectDown', () => {
-    const editor = vscode.window.activeTextEditor; // has to be on all functions to catch the current active text editor
-    if (editor) {
-      new IndentJumpMover(editor).selectDown();
-    }
-  });
-
   // move
   context.subscriptions.push(moveUp);
   context.subscriptions.push(moveDown);
-  // context.subscriptions.push(moveRight);
-
-  // select
-  context.subscriptions.push(selectUp);
-  context.subscriptions.push(selectDown);
 }
 
 // this method is called when your extension is deactivated
@@ -75,45 +50,14 @@ class IndentJumpMover {
     this.move(nextLine);
   }
 
-  // public moveRight() {
-  //   let currentPosition = this.editor.selection.active.character;
-  //   let indentationPosition = this.indentJumpForLine(this.editor.selection.start.line);
-
-  //   if (currentPosition < indentationPosition) {
-  //     if (this.editor.selections.length > 1) {
-  //       vscode.commands.executeCommand('cursorWordEndRight').then(() => {
-  //         vscode.commands.executeCommand('cursorWordStartLeft');
-  //       });
-  //     } else {
-  //       let position = new vscode.Position(this.editor.selection.active.line, indentationPosition);
-  //       this.editor.selection = new vscode.Selection(position, position);
-  //     }
-  //   } else {
-  //     vscode.commands.executeCommand('cursorWordEndRight');
-  //   }
-  // }
-
-  public selectUp() {
-    let startPoint = this.editor.selection.anchor;
-    this.moveUp();
-    let endPoint = this.editor.selection.active;
-    this.editor.selection = new vscode.Selection(startPoint, endPoint);
-  }
-
-  public selectDown() {
-    let startPoint = this.editor.selection.anchor;
-    this.moveDown();
-    let endPoint = this.editor.selection.active;
-    this.editor.selection = new vscode.Selection(startPoint, endPoint);
-  }
-
   private move(toLine: number | undefined) {
     let currentCharacter = this.editor.selection.anchor.character;
     let position = this.editor.selection.active;
     let newPosition = position.with(toLine, currentCharacter);
     let selection = new vscode.Selection(newPosition, newPosition);
 
-    this.editor.selection = selection;
+    //this.editor.selection = selection;
+    this.setCursor(this.editor, newPosition);
     this.editor.revealRange(new vscode.Range(newPosition, newPosition));
   }
 
@@ -203,6 +147,14 @@ class IndentJumpMover {
     }
     return;
   }
+
+ 	private setCursor(editor: vscode.TextEditor, position: vscode.Position) {
+		if (editor.selection.isEmpty)	{
+			editor.selection = new vscode.Selection(position, position);
+		} else {
+			editor.selection = new vscode.Selection(editor.selection.anchor, position);
+		}
+	};
 
   dispose() {}
 }
